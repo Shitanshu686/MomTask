@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MomTask AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin-bottom: 8px;
+            font-size: 34px;
+        }
+
+        .header p {
+            color: #666;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #555;
+        }
+
+        .add-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: #222;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .add-btn:hover {
+            background: #000;
+        }
+
+        .voice-btn {
+            margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background: white;
+            color: #222;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .voice-btn:hover {
+            background: #f5f5f5;
+        }
+
+
+        .input-wrap {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-wrap textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 60px;
+        }
+
+        .mic-btn {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            width: 42px;
+            height: 42px;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            background: white;
+            font-size: 21px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.08);
+            background: #f3f3f3;
+        }
+
+        .mic-btn.listening {
+            animation: micPulse 1s infinite;
+        }
+
+        @keyframes micPulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.12);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 12px;
+            color: #666;
+        }
+
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section-title {
+            font-size: 21px;
+            margin-bottom: 12px;
+        }
+
+        .task {
+            background: white;
+            border-radius: 15px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        .task-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-name {
+            font-size: 17px;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .task.completed .task-name {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .task-meta {
+            margin-top: 7px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 7px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 9px;
+            padding: 7px 9px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .action-btn:hover {
+            background: #f2f2f2;
+        }
+
+        .reminder-time {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .empty {
+            background: white;
+            border-radius: 14px;
+            padding: 18px;
+            color: #888;
+            text-align: center;
+        }
+
+        .message {
+            display: none;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .success {
+            background: #eaf8ee;
+            color: #24753a;
+        }
+
+        .error {
+            background: #fdecec;
+            color: #a52a2a;
+        }
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding: 20px 12px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .task-actions {
+                margin-top: 10px;
+            }
+
+            .task-row {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>🤖 MomTask AI</h1>
+        <p>Hindi/Hinglish mein bolo, MomTask task samajh lega ❤️</p>
+    </div>
+
+    <div class="card">
+
+        
+<div class="input-wrap">
+    <textarea
+            id="taskInput"
+            placeholder="Example: Kal subah doodh lana hai"></textarea>
+    <button
+        type="button"
+        class="mic-btn"
+        id="micButton"
+        onclick="startVoiceInput()"
+        title="Bolkar task likhein">
+        🎤
+    </button>
+</div>
+
+
+        <button
+            class="add-btn"
+            onclick="addTask()">
+            ➕ Add Task
+        </button>
+
+        <button
+            class="voice-btn"
+            id="voiceButton"
+            onclick="startVoiceInput()">
+            🎤 Bolkar Task Add Karein
+        </button>
+
+        <div
+            id="voiceStatus"
+            class="loading">
+            🎤 Sun raha hoon...
+        </div>
+
+        <div
+            id="loading"
+            class="loading">
+            🤖 AI task samajh raha hai...
+        </div>
+
+        <div
+            id="message"
+            class="message">
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            📅 Aaj ke Tasks
+        </div>
+
+        <div id="todayTasks"></div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            📌 Upcoming Tasks
+        </div>
+
+        <div id="upcomingTasks"></div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-title">
+            ✅ Completed
+        </div>
+
+        <div id="completedTasks"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+function startVoiceInput() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        showMessage(
+            "❌ Is browser mein voice input supported nahi hai.",
+            "error"
+        );
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "hi-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    const input = document.getElementById("taskInput");
+    const button = document.getElementById("micButton");
+
+    button.textContent = "🎙️";
+    button.classList.add("listening");
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+
+        const transcript =
+            event.results[0][0].transcript;
+
+        input.value = transcript;
+
+        button.textContent = "🎤";
+        button.classList.remove("listening");
+
+        showMessage(
+            "✅ Aapki baat samajh aa gayi.",
+            "success"
+        );
+    };
+
+    recognition.onerror = function(event) {
+
+        console.error(
+            "Voice input error:",
+            event.error
+        );
+
+        button.textContent = "🎤";
+        button.classList.remove("listening");
+
+        showMessage(
+            "❌ Voice input nahi ho paaya. Dobara try karein.",
+            "error"
+        );
+    };
+
+    recognition.onend = function() {
+
+        button.textContent = "🎤";
+        button.classList.remove("listening");
+    };
+}
+
+
+async function addTask() {
+
+    const input =
+        document.getElementById("taskInput");
+
+    const message =
+        input.value.trim();
+
+    if (!message) {
+
+        showMessage(
+            "Pehle task likho 😊",
+            "error"
+        );
+
+        return;
+    }
+
+    const loading =
+        document.getElementById("loading");
+
+    loading.style.display = "block";
+
+    try {
+
+        const response =
+            await fetch("/api/tasks", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+
+                body: message
+            });
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Task create nahi hua"
+            );
+        }
+
+        await response.json();
+
+        input.value = "";
+
+        showMessage(
+            "✅ Task add ho gaya!",
+            "success"
+        );
+
+        await loadTasks();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "❌ Task add nahi ho paaya.",
+            "error"
+        );
+
+    } finally {
+
+        loading.style.display = "none";
+    }
+}
+
+
+async function loadTasks() {
+
+    const todayBox =
+        document.getElementById("todayTasks");
+
+    const upcomingBox =
+        document.getElementById("upcomingTasks");
+
+    const completedBox =
+        document.getElementById("completedTasks");
+
+    try {
+
+        const response =
+            await fetch("/api/tasks");
+
+        if (!response.ok) {
+            throw new Error(
+                "Could not load tasks"
+            );
+        }
+
+        const tasks =
+            await response.json();
+
+        todayBox.innerHTML = "";
+        upcomingBox.innerHTML = "";
+        completedBox.innerHTML = "";
+
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+        const pendingToday =
+            tasks.filter(
+                task =>
+                    !task.completed &&
+                    task.date === today
+            );
+
+        const upcoming =
+            tasks.filter(
+                task =>
+                    !task.completed &&
+                    task.date !== today
+            );
+
+        const completed =
+            tasks.filter(
+                task =>
+                    task.completed
+            );
+
+        renderTasks(
+            pendingToday,
+            todayBox,
+            "Aaj koi task nahi hai 😊"
+        );
+
+        renderTasks(
+            upcoming,
+            upcomingBox,
+            "Koi upcoming task nahi hai."
+        );
+
+        renderTasks(
+            completed,
+            completedBox,
+            "Abhi koi completed task nahi hai."
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        todayBox.innerHTML =
+            '<div class="empty">Tasks load nahi ho paaye.</div>';
+
+        upcomingBox.innerHTML = "";
+        completedBox.innerHTML = "";
+    }
+}
+
+
+function renderTasks(
+    tasks,
+    container,
+    emptyMessage
+) {
+
+    if (tasks.length === 0) {
+
+        container.innerHTML =
+            `<div class="empty">${emptyMessage}</div>`;
+
+        return;
+    }
+
+
+    tasks.forEach(task => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "task" +
+            (task.completed
+                ? " completed"
+                : "");
+
+
+        const dateText =
+            formatDate(task.date);
+
+        const timeText =
+            formatTime(task.time);
+
+
+        const reminderEnabled =
+            task.reminderEnabled !== false;
+
+
+        const reminderTime =
+            task.reminderTime || "09:00";
+
+
+        div.innerHTML = `
+
+            <div class="task-row">
+
+                <input
+                    type="checkbox"
+                    class="checkbox"
+                    ${task.completed ? "checked" : ""}
+                    onchange="toggleComplete(${task.id})">
+
+                <div class="task-content">
+
+                    <div class="task-name">
+                        ${escapeHtml(task.task)}
+                    </div>
+
+                    <div class="task-meta">
+
+                        ${dateText}
+
+                        ${timeText
+                            ? " • " + timeText
+                            : ""}
+
+                    </div>
+
+                </div>
+
+                <div class="task-actions">
+
+                    <button
+                        class="action-btn"
+                        onclick="toggleReminder(${task.id})"
+                        title="Reminder ON/OFF">
+
+                        ${reminderEnabled
+                            ? "🔔"
+                            : "🔕"}
+
+                    </button>
+
+                    <input
+                        type="time"
+                        class="reminder-time"
+                        value="${escapeHtml(reminderTime)}"
+                        onchange="updateReminderTime(
+                            ${task.id},
+                            this.value
+                        )"
+                        title="Reminder time">
+
+                    <button
+                        class="action-btn"
+                        onclick="deleteTask(${task.id})"
+                        title="Delete">
+
+                        🗑️
+
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        container.appendChild(div);
+
+    });
+}
+
+
+async function toggleComplete(id) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tasks/${id}/complete`,
+                {
+                    method: "PUT"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Complete update failed"
+            );
+        }
+
+        await loadTasks();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "❌ Task update nahi ho paaya.",
+            "error"
+        );
+    }
+}
+
+
+async function toggleReminder(id) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tasks/${id}/reminder`,
+                {
+                    method: "PUT"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Reminder update failed"
+            );
+        }
+
+        await loadTasks();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "❌ Reminder update nahi ho paaya.",
+            "error"
+        );
+    }
+}
+
+
+async function updateReminderTime(
+    id,
+    reminderTime
+) {
+
+    if (!reminderTime) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tasks/${id}/reminder-time`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        reminderTime:
+                            reminderTime
+                    })
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Reminder time update failed"
+            );
+        }
+
+        showMessage(
+            `⏰ Reminder ${reminderTime} par set ho gaya.`,
+            "success"
+        );
+
+        await loadTasks();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "❌ Reminder time save nahi ho paaya.",
+            "error"
+        );
+    }
+}
+
+
+async function deleteTask(id) {
+
+    const confirmDelete =
+        confirm(
+            "Kya aap ye task delete karna chahte ho?"
+        );
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/tasks/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Delete failed"
+            );
+        }
+
+        showMessage(
+            "🗑️ Task delete ho gaya.",
+            "success"
+        );
+
+        await loadTasks();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "❌ Task delete nahi ho paaya.",
+            "error"
+        );
+    }
+}
+
+
+function formatDate(date) {
+
+    if (!date) {
+        return "";
+    }
+
+    const today =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+    const tomorrow =
+        new Date(
+            Date.now() +
+            86400000
+        )
+        .toISOString()
+        .split("T")[0];
+
+
+    if (date === today) {
+        return "📅 Aaj";
+    }
+
+    if (date === tomorrow) {
+        return "📅 Kal";
+    }
+
+    return "📅 " + date;
+}
+
+
+function formatTime(time) {
+
+    if (!time) {
+        return "";
+    }
+
+    const map = {
+
+        morning: "🌅 Subah",
+
+        afternoon: "☀️ Dopahar",
+
+        evening: "🌆 Shaam",
+
+        night: "🌙 Raat"
+
+    };
+
+    return map[time] || time;
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function showMessage(
+    text,
+    type
+) {
+
+    const message =
+        document.getElementById("message");
+
+    message.textContent = text;
+
+    message.className =
+        "message " + type;
+
+    message.style.display =
+        "block";
+
+
+    setTimeout(() => {
+
+        message.style.display =
+            "none";
+
+    }, 3000);
+}
+
+
+document
+    .getElementById("taskInput")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                event.ctrlKey
+            ) {
+
+                addTask();
+            }
+        }
+    );
+
+
+loadTasks();
+
+</script>
+
+<script src="/notification.js"></script>
+</body>
+</html>
